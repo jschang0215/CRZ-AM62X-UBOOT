@@ -128,7 +128,7 @@ static int __maybe_unused ti_i2c_eeprom_get(int bus_addr, int dev_addr,
 
 	rc = dm_i2c_read(dev, 0x1, &offset_test, sizeof(offset_test));
 
-	if (offset_test != ((header >> 8) & 0xFF))
+	if (*((u32 *)ep) != (header & 0xFF))
 		one_byte_addressing = false;
 
 	/* Corrupted data??? */
@@ -295,6 +295,25 @@ int __maybe_unused ti_i2c_eeprom_am_set(const char *name, const char *rev)
 
 already_set:
 	return 0;
+}
+
+/* crazyboys 20230712 */
+int CRZ_set_board_header_and_name(void)
+{
+        struct ti_am6_eeprom *ep = TI_AM6_EEPROM_DATA;
+	static bool first_time = true;
+
+	if ( !first_time )
+		return 0;
+
+        MANGO_DBG_DEFAULT;
+        ep->header = TI_EEPROM_HEADER_MAGIC; /* 0xEE3355AA */
+        strcpy(ep->name, "AM62-SKEVM");
+        strncpy(ep->version, "CRZ", TI_EEPROM_HDR_REV_LEN);
+        /* Some dummy serial number to identify the platform */
+        strncpy(ep->serial, "0000", TI_EEPROM_HDR_SERIAL_LEN);
+	first_time = false;
+        return 0;
 }
 
 int __maybe_unused ti_i2c_eeprom_am_get(int bus_addr, int dev_addr)

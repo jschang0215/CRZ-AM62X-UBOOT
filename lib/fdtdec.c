@@ -1057,6 +1057,8 @@ int fdtdec_setup_mem_size_base(void)
 	debug("%s: Initial DRAM size %llx\n", __func__,
 	      (unsigned long long)gd->ram_size);
 
+	gd->ram_size = get_ram_size((long *)gd->ram_base, 0x80000000);
+
 	return 0;
 }
 
@@ -1105,6 +1107,11 @@ int fdtdec_setup_memory_banksize(void)
 		      __func__, bank,
 		      (unsigned long long)gd->bd->bi_dram[bank].start,
 		      (unsigned long long)gd->bd->bi_dram[bank].size);
+
+		if(bank == 0)
+		{
+			gd->bd->bi_dram[bank].size = get_ram_size((long *)gd->bd->bi_dram[bank].start, 0x80000000);
+		}
 	}
 
 	return 0;
